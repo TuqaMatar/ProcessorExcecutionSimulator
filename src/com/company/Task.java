@@ -19,11 +19,9 @@ public class Task {
         this.id = id;
     }
 
-
     public int getCreationTime() {
         return creationTime;
     }
-
 
 
     public Task(String taskId, int creationTime, int executionTime, int priority) {
@@ -42,17 +40,6 @@ public class Task {
         return priority;
     }
 
-    public void setCompletionTime(int completionTime) {
-        this.completionTime = completionTime;
-    }
-
-    public boolean isRunning() {
-        return isRunning;
-    }
-
-    public void setRunning(boolean running) {
-        isRunning = running;
-    }
 
     public void decrementExecutionTime() {
         if (timeRemainingToFinish > 0) {

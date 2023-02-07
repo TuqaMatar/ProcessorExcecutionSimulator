@@ -8,7 +8,6 @@ public class Scheduler {
     List<Task> tasks;
     PriorityQueue<Task> taskQueue;
     private Map<Integer, List<Task>> taskMap = new HashMap<>();
-
     private Processor[] processors;
     private int numProcessors;
 
@@ -20,7 +19,6 @@ public class Scheduler {
         }
         taskQueue = new PriorityQueue<>(new TaskPriorityComparator());
     }
-
     private void addTaskToMap(Task task) {
         int creationTime = task.getCreationTime();
         if (!taskMap.containsKey(creationTime)) {
@@ -28,8 +26,6 @@ public class Scheduler {
         }
         taskMap.get(creationTime).add(task);
     }
-
-
 
 //    public List<Task> getTasksCreatedAtCurrentTime(int time) {
 //        List<Task> tasksCreatedAtTime = new ArrayList<>();

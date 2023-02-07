@@ -1,7 +1,6 @@
 package com.company;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class Simulator {
     List<Task> tasks;
@@ -9,7 +8,6 @@ public class Simulator {
     private Scheduler schedular;
     private Processor[] processors;
     private int numberOfCycles;
-
 
     public Simulator(int numberOfProcessors, int numberOfClockCycles, List<Task> tasks) {
         clock = new Clock();
@@ -85,7 +83,6 @@ public class Simulator {
             System.out.println();
 
             clock.tick();
-
         }
     }
 }

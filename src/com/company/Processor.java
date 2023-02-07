@@ -27,11 +27,6 @@ public class Processor {
         return task != null;
     }
 
-    public void update() {
-        if (isBusy()) {
-            task.decrementExecutionTime();
-        }
-    }
 
     public boolean isTaskFinished() {
         return isBusy() && task.getTimeRemainingToFinish() == 0;
@@ -41,10 +36,6 @@ public class Processor {
         Task releasedTask = task;
         task = null;
         return releasedTask;
-    }
-
-    public void removeTask() {
-        assignTask(null);
     }
 
 }
