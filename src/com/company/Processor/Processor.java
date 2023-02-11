@@ -1,22 +1,16 @@
-package com.company;
-public class Processor {
-    public Task getTask() {
-        return task;
-    }
+package com.company.Processor;
 
+import com.company.Task.Task;
+
+import java.util.Observable;
+
+public class Processor extends Observable {
     private Task task;
     private int id;
 
-    public Processor(int id) {
-        this.id = id;
-    }
     public Processor(int id , Task task) {
         this.id = id;
         this.task = task;
-    }
-
-    public Processor() {
-
     }
 
     public void assignTask(Task task) {
@@ -27,15 +21,24 @@ public class Processor {
         return task != null;
     }
 
-
     public boolean isTaskFinished() {
-        return isBusy() && task.getTimeRemainingToFinish() == 0;
+        return  task.getTimeRemainingToFinish() == 0;
     }
 
     public Task releaseTask() {
         Task releasedTask = task;
         task = null;
+        setChanged();
+        notifyObservers();
         return releasedTask;
     }
 
+    public Task getTask() {
+        return task;
+    }
+
+    @Override
+    public String toString() {
+        return "P"+id;
+    }
 }

@@ -1,88 +1,90 @@
 package com.company;
+
+import com.company.Clock.Clock;
+import com.company.Clock.ClockCycle;
+import com.company.Processor.Processor;
+import com.company.Scheduler.Scheduler;
+import com.company.Task.Task;
+import com.company.Utilities.ReportWriter;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Simulator {
-    List<Task> tasks;
     private Clock clock;
-    private Scheduler schedular;
-    private Processor[] processors;
+    private Scheduler scheduler;
+    private List<Processor> processors;
+    List<Task> tasks;
     private int numberOfCycles;
 
-    public Simulator(int numberOfProcessors, int numberOfClockCycles, List<Task> tasks) {
-        clock = new Clock();
-        schedular = new Scheduler(numberOfProcessors);
+    public Simulator(int numberOfProcessors, int numberOfClockCycles, List<Task> tasks , Scheduler scheduler) {
+        clock = new Clock(1, numberOfClockCycles);
+        this.scheduler =scheduler;
         this.tasks = tasks;
         this.numberOfCycles = numberOfClockCycles;
-        processors = new Processor[numberOfProcessors];
+        processors = new ArrayList<>(numberOfProcessors);
 
         //initialize processors
         for (int i = 0; i < numberOfProcessors; i++) {
-            Processor processor = new Processor(i+1 , null);
-            processors[i] = processor;
-        }
+            Processor processor = new Processor(i + 1, null);
+            processor.addObserver(scheduler);
+            processors.add(processor);
 
-    }
-    public List<Task> getTasksCreatedAtCurrentTime(int time) {
-        List<Task> tasksCreatedAtTime= new ArrayList<>();
-        for(Task task :tasks)
-        {
-            if(task.getCreationTime() == time)
-                tasksCreatedAtTime.add(task);
         }
-        return tasksCreatedAtTime;
-
     }
+
     public void run() throws InterruptedException {
-        while (clock.getTime() <= numberOfCycles) {
-            System.out.println("At cycle " + clock.getTime() + ":");
-            System.out.println("--------------------------------------------------");
-            // get tasks created at current time
-            List<Task> tasksCreatedAtCurrentTime = getTasksCreatedAtCurrentTime(clock.getTime());
-            if (!tasksCreatedAtCurrentTime.isEmpty()) {
-                System.out.print("tasks ");
-                for(Task task : tasksCreatedAtCurrentTime)
-                System.out.print("T"+task.getId()+" ");
+        List<ClockCycle> clockCycles = clock.getClockCycles();
+        List<Task> finishedTasks = new ArrayList<>();
+        List<Processor> runningProcessors = new ArrayList<>();
+        List<Processor> availableProcessors = new ArrayList<>();
 
-                System.out.println((tasksCreatedAtCurrentTime.size() == 1? " is": " are") + " created and added to the queue");
-            }
-            else {
-                System.out.println("No Tasks are created");
-            }
+        for (int i = 0; i < numberOfCycles; i++) {
+            finishedTasks.clear();
+            runningProcessors.clear();
+            availableProcessors.clear();
+            ClockCycle currentClockCycle = clockCycles.get(i);
 
-            schedular.assignTaskToProcessor(tasksCreatedAtCurrentTime , processors);
+            List<Task> tasksCreatedAtCurrentTime = scheduler.getTasksCreatedAtCurrentTime(clock.getTickTime());
 
-            for (int i = 0; i < processors.length; i++) {
+            currentClockCycle.setCreatedTasks(tasksCreatedAtCurrentTime);
 
+            scheduler.addTasksToQueue(tasksCreatedAtCurrentTime);
+            scheduler.assignTaskToProcessor(processors);
 
-                if(processors[i].isTaskFinished()) {
-                    System.out.println("task " + processors[i].releaseTask() + " is released");
-                    schedular.assignTaskToProcessor(processors);
-
+            for (int j = 0; j < processors.size(); j++) {
+                Task assignedTask = processors.get(j).getTask();
+                if (processors.get(j).isTaskFinished()) {
+                    Task task = processors.get(j).releaseTask();
+                    finishedTasks.add(task);
                 }
-
-                Task assignedTask = processors[i].getTask();
                 if (assignedTask != null) {
-                    System.out.println("processor P" + (i + 1) + " is running " + "T"+ assignedTask.getId() + " remainingTime is :" + assignedTask.getTimeRemainingToFinish());
-
+                    runningProcessors.add(processors.get(j));
                 } else {
-                    System.out.println("processor P" + (i + 1) + " is available");
+                    availableProcessors.add(processors.get(j));
                 }
             }
 
-            System.out.print( schedular.taskQueue.size()==0? "No tasks are waiting. " :"waiting tasks : ");
-            schedular.printWaitingTasks();
-            System.out.println();
+            currentClockCycle.setRunningProcessors(runningProcessors);
+            currentClockCycle.setAvailableProcessors(availableProcessors);
+            currentClockCycle.setReleasedTasks(finishedTasks);
 
-            for(Processor processor : processors)
-            {
-                if(processor.isBusy())
-                 processor.getTask().decrementExecutionTime();
+            if (scheduler.getTaskQueue().size() == 0) {
+                currentClockCycle.setWaitingTasks(new ArrayList<>());
+            } else {
+                currentClockCycle.setWaitingTasks(scheduler.getWaitingTasks());
+            }
+
+            ReportWriter.PrintClockCycleData(currentClockCycle);
+
+            for (Processor processor : processors) {
+                if (processor.isBusy())
+                    processor.getTask().decrementRemainingTime();
             }
 
             System.out.println();
-
             clock.tick();
         }
+
     }
 }
